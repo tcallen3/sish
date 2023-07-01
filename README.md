@@ -29,27 +29,27 @@ Enable tracing: write each command to stderr, preceded by '+'
 
 **Builtins**
 
-`sish` supports several builtins which take precedence over non-builtin
+**sish** supports several builtins which take precedence over non-builtin
 commands:
 
 `cd [dir]`
 Change the current working directory. If no directory is specified, change
-to the directory specified in the `HOME` environment variable. If that is
+to the directory specified in the *HOME* environment variable. If that is
 also unspecified, change to the user's home directory as determined by 
-`getpwuid(3)`.
+*getpwuid(3)*.
 
 `echo [word ...]`
 Print the given word(s) followed by a newline. This builtin also supports
-the special values `$?` (exit status of the last command) and `$$` (current
-process ID).
+the special values *$?* - the exit status of the last command, and *$$* -
+the current process ID.
 
 `exit`
 Exit the current shell.
 
 **Command Execution**
 
-If a command sequence does not begin with a builtin, `sish` attempts to
-execute it as a system command, possibly utilizing the current `PATH` 
+If a command sequence does not begin with a builtin, **sish** attempts to
+execute it as a system command, possibly utilizing the current *PATH* 
 environment variable.
 
 **Environment**
@@ -57,9 +57,9 @@ environment variable.
 **sish** sets the following environment variables:
 
 `SHELL`
-This is the path to the `sish` executable.
+This is the path to the **sish** executable.
 
-The `HOME` environment variable is also used along with `cd` as noted above.
+The *HOME* environment variable is also used along with *cd* as noted above.
 
 # EXIT STATUS
 
