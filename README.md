@@ -23,11 +23,11 @@ pipelines, and command backgrounding in analogy to the Bourne shell.
 Execute the given command and terminate.
 
 `-x`
-Enable tracing: write each command to stderr, preceded by '+'
+Enable tracing: write each command to stderr, preceded by '+'.
 
 # DETAILS
 
-**Builtins**
+### Builtins
 
 **sish** supports several builtins which take precedence over non-builtin
 commands:
@@ -46,13 +46,13 @@ the current process ID.
 `exit`
 Exit the current shell.
 
-**Command Execution**
+### Command Execution
 
 If a command sequence does not begin with a builtin, **sish** attempts to
 execute it as a system command, possibly utilizing the current *PATH* 
 environment variable.
 
-**Environment**
+### Environment
 
 **sish** sets the following environment variables:
 
