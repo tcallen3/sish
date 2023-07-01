@@ -17,7 +17,7 @@ pipelines, and command backgrounding in analogy to the Bourne shell.
 
 # OPTIONS
 
-`sish` supports the following options:
+**sish** supports the following options:
 
 `-c command`
 Execute the given command and terminate.
@@ -28,6 +28,7 @@ Enable tracing: write each command to stderr, preceded by '+'
 # DETAILS
 
 **Builtins**
+
 `sish` supports several builtins which take precedence over non-builtin
 commands:
 
@@ -46,12 +47,14 @@ process ID).
 Exit the current shell.
 
 **Command Execution**
+
 If a command sequence does not begin with a builtin, `sish` attempts to
 execute it as a system command, possibly utilizing the current `PATH` 
 environment variable.
 
 **Environment**
-`sish` sets the following environment variables:
+
+**sish** sets the following environment variables:
 
 `SHELL`
 This is the path to the `sish` executable.
@@ -60,8 +63,8 @@ The `HOME` environment variable is also used along with `cd` as noted above.
 
 # EXIT STATUS
 
-`sish` returns the exit status of the last command executed, or else 127 if
-the command could not be executed.
+**sish** returns the exit status of the last command executed, or else 127 
+if the command could not be executed.
 
 # NOTES
 
