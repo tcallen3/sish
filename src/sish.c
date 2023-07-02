@@ -32,14 +32,63 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+void
+usage()
+{
+	fprintf(stderr, "usage: %s [-x] [-c command]\n", getprogname());
+}
 
 int 
 main(int argc, char *argv[]) 
 {
-	(void)argc;
-	(void)argv;
+	extern char *optarg;
+	const char *all_opts = "c:x";
+	char *cmd_input = NULL;
+	extern int optind;
+	int cmd_echo = 0;
+	int single_cmd = 0;
+	int status = EXIT_SUCCESS;
+	int ch;
 
-	printf("Hello, world!\n");
+	setprogname(argv[0]);
 
-	return 0;
+	while ((ch = getopt(argc, argv, all_opts)) != -1) {
+		switch (ch) {
+		case 'x':
+			cmd_echo = 1;
+			break;
+		case 'c':
+			single_cmd = 1;
+			cmd_input = optarg;
+			break;
+
+		case '?':
+			/* FALLTHROUGH */
+		default:
+			usage();
+			status = EXIT_FAILURE;
+			goto cleanup;
+			/* NOTREACHED */
+		}
+	}
+
+	if (single_cmd) {
+		/* FIXME */
+		printf("Single command = %s\n", cmd_input);
+	} else {
+		/* FIXME */
+		printf("Full shell run selected\n");
+	}
+
+	/* FIXME */
+	if (cmd_echo) {
+		printf("Command echoing set\n");
+	}
+
+cleanup:
+
+	return status;
 }
