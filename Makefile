@@ -1,19 +1,25 @@
-CFLAGS = -ansi -g3 -Wall -Werror -Wextra -Wformat=2 -Wjump-misses-init 
-CFLAGS += -Wlogical-op -Wpedantic -Wshadow
+PROG := sish
 
-PROG = sish
+SRCDIR := src
 
-SRC = sish.c
+CMD := ls ${SRCDIR}/*.c
+SRCS := ${CMD:sh}
+INCLUDE := include
+
 BIN = bin
+
+CFLAGS := -ansi -g3 -Wall -Werror -Wextra -Wformat=2 -Wjump-misses-init 
+CFLAGS += -Wlogical-op -Wpedantic -Wshadow
+CFLAGS += -I include
 
 all: ${PROG}
 
 depend:
 	mkdep -- ${CFLAGS} *.c
 
-${PROG}: ${SRC}
-	mkdir -p ${BIN}
-	${CC} ${CFLAGS} -o ${BIN}/${PROG} ${SRC}
+${PROG}: ${SRCS}
+	@mkdir -p ${BIN}
+	${CC} ${CFLAGS} -o ${BIN}/${PROG} ${SRCS}
 
 clean:
-	rm -rf ${BIN}/${PROG}
+	rm -r ${BIN}
