@@ -31,9 +31,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#define SIG_COUNT 3
 
 void
 usage()
@@ -41,12 +45,49 @@ usage()
 	fprintf(stderr, "usage: %s [-x] [-c command]\n", getprogname());
 }
 
+void
+block_signals(sigset_t *block_set, sigset_t *orig_set)
+{
+	/* We want to ignore Ctrl-C, Ctrl-\, and Ctrl-Z */
+	const int sigs[SIG_COUNT] = {SIGINT, SIGQUIT, SIGTSTP};
+	size_t i;
+
+	if (sigemptyset(orig_set) != 0) {
+		perror("sigemptyset");
+		exit(EXIT_FAILURE);
+	}
+
+	if (sigemptyset(block_set) != 0) {
+		perror("sigemptyset");
+		exit(EXIT_FAILURE);
+	}
+
+	for (i = 0; i < SIG_COUNT; i++) {
+		if (sigaddset(block_set, sigs[i]) != 0) {
+			perror("sigaddset");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (sigprocmask(SIG_SETMASK, block_set, orig_set) != 0) {
+		perror("sigprocmask");
+		exit(EXIT_FAILURE);
+	}
+}
+
+/*
+ * A simple command line interpreter which supports a subset of Bourne
+ * shell operations, including I/O redirection, pipelines, and background
+ * program execution. Only a handful of builtins are supported, and no
+ * effort is made to provide a useful scripting language.
+ */
 int 
 main(int argc, char *argv[]) 
 {
 	extern char *optarg;
 	const char *all_opts = "c:x";
 	char *cmd_input = NULL;
+	sigset_t block_set, orig_set;
 	extern int optind;
 	int cmd_echo = 0;
 	int single_cmd = 0;
@@ -54,6 +95,7 @@ main(int argc, char *argv[])
 	int ch;
 
 	setprogname(argv[0]);
+	block_signals(&block_set, &orig_set);
 
 	while ((ch = getopt(argc, argv, all_opts)) != -1) {
 		switch (ch) {
@@ -88,7 +130,12 @@ main(int argc, char *argv[])
 		printf("Command echoing set\n");
 	}
 
+	/* FIXME */
+	sleep(10);
+
 cleanup:
+	/* we don't really care if this fails since we're exiting */
+	(void)sigprocmask(SIG_SETMASK, &orig_set, NULL);
 
 	return status;
 }
