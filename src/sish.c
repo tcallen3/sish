@@ -31,6 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <sys/param.h>
+
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -75,6 +77,34 @@ block_signals(sigset_t *block_set, sigset_t *orig_set)
 	}
 }
 
+int
+setup_env(const char *prog)
+{	
+	char *full_path;
+	const char *env_var = "SHELL";
+	const int ok = 0;
+	const int err_val = 1;
+	const int overwrite = 1;
+	
+	full_path = realpath(prog, NULL);
+	if (full_path == NULL) {
+		perror("realpath");
+		return err_val;
+	}
+
+	if (setenv(env_var, full_path, overwrite) != 0) {
+		perror("setenv");
+		(void)free(full_path);
+		return err_val;
+	}
+
+	if (full_path != NULL) {
+		(void)free(full_path);
+	}
+
+	return ok;
+}
+
 /*
  * A simple command line interpreter which supports a subset of Bourne
  * shell operations, including I/O redirection, pipelines, and background
@@ -96,6 +126,11 @@ main(int argc, char *argv[])
 
 	setprogname(argv[0]);
 	block_signals(&block_set, &orig_set);
+
+	if (setup_env(argv[0]) != 0) {
+		status = EXIT_FAILURE;
+		goto cleanup;
+	}
 
 	while ((ch = getopt(argc, argv, all_opts)) != -1) {
 		switch (ch) {
@@ -130,8 +165,8 @@ main(int argc, char *argv[])
 		printf("Command echoing set\n");
 	}
 
-	/* FIXME */
-	sleep(10);
+	/* DEBUG */
+	printf("SHELL = %s\n", getenv("SHELL"));
 
 cleanup:
 	/* we don't really care if this fails since we're exiting */
