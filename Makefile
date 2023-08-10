@@ -8,9 +8,12 @@ INCLUDE := include
 
 BIN = bin
 
-CFLAGS := -ansi -g3 -Wall -Werror -Wextra -Wformat=2 -Wjump-misses-init 
+CFLAGS := -ansi -Wall -Werror -Wextra -Wformat=2 -Wjump-misses-init 
 CFLAGS += -Wlogical-op -Wpedantic -Wshadow
 CFLAGS += -I include
+
+CDEBUG := -g3 -fsanitize=address
+CFLAGS += ${CDEBUG}
 
 all: ${PROG}
 
