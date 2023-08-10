@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "parser.h"
+
 #define SIG_COUNT 3
 
 void
@@ -122,11 +124,11 @@ main(int argc, char *argv[])
 	int cmd_echo = 0;
 	int single_cmd = 0;
 	int status = EXIT_SUCCESS;
+	int repeat = 1;
 	int ch;
 
 	setprogname(argv[0]);
 	block_signals(&block_set, &orig_set);
-
 	if (setup_env(argv[0]) != 0) {
 		status = EXIT_FAILURE;
 		goto cleanup;
@@ -153,20 +155,10 @@ main(int argc, char *argv[])
 	}
 
 	if (single_cmd) {
-		/* FIXME */
-		printf("Single command = %s\n", cmd_input);
+		status = parse_single(cmd_echo, cmd_input);
 	} else {
-		/* FIXME */
-		printf("Full shell run selected\n");
+		status = parse_commands(cmd_echo);
 	}
-
-	/* FIXME */
-	if (cmd_echo) {
-		printf("Command echoing set\n");
-	}
-
-	/* DEBUG */
-	printf("SHELL = %s\n", getenv("SHELL"));
 
 cleanup:
 	/* we don't really care if this fails since we're exiting */
