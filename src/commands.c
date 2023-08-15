@@ -31,6 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <sys/wait.h>
+
 #include <errno.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -41,6 +43,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define REPEAT 1
 #define NO_REPEAT 0
+
+#define PROC_FAILURE 127
 
 static const char CD_CMD[] = "cd";
 static const char ECHO_CMD[] = "echo";
@@ -131,6 +135,8 @@ echo_line(char **tokens, size_t tokens_len, int *status)
 int 
 execute_cmd(char **tokens, size_t token_len, int *curr_status)
 {
+	pid_t pid;
+
 	if (token_len == 0) {
 		return REPEAT;
 	}
@@ -146,8 +152,23 @@ execute_cmd(char **tokens, size_t token_len, int *curr_status)
 		return NO_REPEAT;
 
 	} else {
-		/* FIXME: add general fork/exec handling */
-
+		/* general fork/exec handling */
+		if ((pid = fork()) == -1) {
+			perror(tokens[0]);
+			*curr_status = 127;
+		} else if (pid == 0) {
+			/* in child */
+			execvp(tokens[0], tokens);
+			/* should not return */
+			perror(tokens[0]);
+			exit(PROC_FAILURE);
+		} else {
+			/* in parent */
+			if (waitpid(pid, curr_status, WEXITED) == -1) {
+				perror(tokens[0]);
+				*curr_status = PROC_FAILURE;
+			}
+		}
 	}
 
 	return REPEAT;
