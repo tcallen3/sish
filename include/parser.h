@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SISH_PARSER_H
 #define SISH_PARSER_H
 
-int parse_single(int, char);
+int parse_single(int, char *);
 int parse_commands(int);
 
 #endif /* SISH_PARSER_H */

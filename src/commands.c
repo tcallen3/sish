@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "commands.h"
@@ -142,10 +143,10 @@ execute_cmd(char **tokens, size_t token_len, int *curr_status)
 	}
 
 	if (strncmp(tokens[0], CD_CMD, strlen(CD_CMD))) {
-		*curr_status = change_dir(tokens, tokens_len);
+		*curr_status = change_dir(tokens, token_len);
 
 	} else if (strncmp(tokens[0], ECHO_CMD, strlen(ECHO_CMD))) {
-		*curr_status = echo_line(tokens, tokens_len, curr_status);
+		*curr_status = echo_line(tokens, token_len, curr_status);
 
 	} else if (strncmp(tokens[0], EXIT_CMD, strlen(EXIT_CMD))) {
 		/* terminate repeats in caller */

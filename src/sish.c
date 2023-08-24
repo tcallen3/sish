@@ -124,7 +124,6 @@ main(int argc, char *argv[])
 	int cmd_echo = 0;
 	int single_cmd = 0;
 	int status = EXIT_SUCCESS;
-	int repeat = 1;
 	int ch;
 
 	setprogname(argv[0]);
