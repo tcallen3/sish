@@ -52,7 +52,7 @@ static size_t
 tokenize(char *input, char ***tokens)
 {
 	const char sep[] = " \t\n";
-	char **out_arr = NULL;
+	char **out_arr = *tokens;
 	char *curr_tok = NULL;
 	size_t i = 0;
 
