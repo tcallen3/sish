@@ -142,13 +142,13 @@ execute_cmd(char **tokens, size_t token_len, int *curr_status)
 		return REPEAT;
 	}
 
-	if (strncmp(tokens[0], CD_CMD, strlen(CD_CMD))) {
+	if (strncmp(tokens[0], CD_CMD, strlen(CD_CMD)) == 0) {
 		*curr_status = change_dir(tokens, token_len);
 
-	} else if (strncmp(tokens[0], ECHO_CMD, strlen(ECHO_CMD))) {
+	} else if (strncmp(tokens[0], ECHO_CMD, strlen(ECHO_CMD)) == 0) {
 		*curr_status = echo_line(tokens, token_len, curr_status);
 
-	} else if (strncmp(tokens[0], EXIT_CMD, strlen(EXIT_CMD))) {
+	} else if (strncmp(tokens[0], EXIT_CMD, strlen(EXIT_CMD)) == 0) {
 		/* terminate repeats in caller */
 		return NO_REPEAT;
 

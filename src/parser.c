@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "parser.h"
 
 #define ECHO_PREFIX '+'
+#define MAX_ARGS 256
+#define ERR_STATUS 127
 
 static void
 print_prompt()
@@ -49,7 +51,33 @@ print_prompt()
 static size_t
 tokenize(char *input, char ***tokens)
 {
-	/* FIXME: implement */
+	const char sep[] = " \t\n";
+	char **out_arr = NULL;
+	char *curr_tok = NULL;
+	size_t i = 0;
+
+	out_arr = realloc(out_arr, MAX_ARGS*sizeof(*out_arr));
+	if (out_arr == NULL) {
+		perror("tokenize");
+		return i;
+	}
+
+	out_arr[i] = strtok(input, sep);
+	if (out_arr[i] == NULL) {
+		return i;
+	}
+	i++;
+
+	while ((curr_tok = strtok(NULL, sep)) != NULL &&
+			i < MAX_ARGS - 1) {
+		out_arr[i] = curr_tok;
+		i++;
+	}
+	out_arr[i] = NULL;
+
+	*tokens = out_arr;
+	
+	return i;
 }
 
 int 
@@ -60,12 +88,12 @@ parse_single(int echo, char *input)
 	int status = EXIT_SUCCESS;
 
 	if (echo) {
-		printf("%c%s", ECHO_PREFIX, input);
+		printf("%c%s\n", ECHO_PREFIX, input);
 	}
 
 	tokens_len = tokenize(input, &tokens);
 	if (tokens_len == 0) {
-		return status;
+		return ERR_STATUS;
 	}
 
 	(void)execute_cmd(tokens, tokens_len, &status);
@@ -91,11 +119,12 @@ parse_commands(int echo)
 		print_prompt();
 		getline(&input, &input_len, stdin);
 		if (echo) {
-			printf("%c%s", ECHO_PREFIX, input);
+			printf("%c%s\n", ECHO_PREFIX, input);
 		}
 
 		tokens_len = tokenize(input, &tokens);
 		if (tokens_len == 0) {
+			status = ERR_STATUS;
 			continue;
 		}
 
