@@ -137,6 +137,7 @@ int
 execute_cmd(char **tokens, size_t token_len, int *curr_status)
 {
 	pid_t pid;
+	int child_status = 0;
 
 	if (token_len == 0) {
 		return REPEAT;
@@ -161,14 +162,22 @@ execute_cmd(char **tokens, size_t token_len, int *curr_status)
 			/* in child */
 			execvp(tokens[0], tokens);
 			/* should not return */
-			perror(tokens[0]);
+			fprintf(stderr, "%s: command not found\n", 
+				tokens[0]);
+			if (tokens != NULL) {
+				(void)free(tokens);
+			}
+
 			exit(PROC_FAILURE);
 		} else {
 			/* in parent */
-			if (waitpid(pid, curr_status, WEXITED) == -1) {
+			if (waitpid(pid, &child_status, WEXITED) == -1) {
 				perror(tokens[0]);
 				*curr_status = PROC_FAILURE;
+				return REPEAT;
 			}
+
+			*curr_status = WEXITSTATUS(child_status);
 		}
 	}
 
