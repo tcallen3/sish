@@ -40,7 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define ECHO_PREFIX '+'
 #define MAX_ARGS 256
-#define ERR_STATUS 127
 
 static void
 print_prompt()
@@ -93,7 +92,7 @@ parse_single(int echo, char *input)
 
 	tokens_len = tokenize(input, &tokens);
 	if (tokens_len == 0) {
-		return ERR_STATUS;
+		return status;
 	}
 
 	(void)execute_cmd(tokens, tokens_len, &status);
@@ -124,7 +123,6 @@ parse_commands(int echo)
 
 		tokens_len = tokenize(input, &tokens);
 		if (tokens_len == 0) {
-			status = ERR_STATUS;
 			continue;
 		}
 
