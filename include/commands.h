@@ -34,6 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SISH_COMMANDS_H
 #define SISH_COMMANDS_H
 
-int execute_cmd(char **, size_t, int *);
+#include "parser.h"
+
+int execute_cmd(struct CommandInfo *, int *);
 
 #endif /* SISH_COMMANDS_H */

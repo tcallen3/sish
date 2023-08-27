@@ -72,15 +72,16 @@ get_passwd_home()
 }
 
 static int
-change_dir(char **tokens, size_t tokens_len)
+change_dir(struct CommandInfo *cmd_info)
 {
 	char *dir = NULL;
 	const char var_name[] = "HOME";
-	if (tokens_len > 2) {
+
+	if (cmd_info->token_count > 2) {
 		fprintf(stderr, "cd: too many arguments\n");
 		return 1;
-	} else if (tokens_len == 2) {
-		dir = tokens[1];
+	} else if (cmd_info->token_count == 2) {
+		dir = cmd_info->tokens[1];
 	} else {
 		/* only cd specified, so try changing to $HOME */
 		dir = getenv(var_name);
@@ -103,7 +104,7 @@ change_dir(char **tokens, size_t tokens_len)
 }
 
 static int
-echo_line(char **tokens, size_t tokens_len, int *status)
+echo_line(struct CommandInfo *cmd_info, int *status)
 {
 	char *word;
 	const char stat_var[] = "$?";
@@ -112,8 +113,8 @@ echo_line(char **tokens, size_t tokens_len, int *status)
 	const size_t var_len = 2;
 	size_t idx = 1;
 
-	while (idx < tokens_len) {
-		word = tokens[idx];
+	while (idx < cmd_info->token_count) {
+		word = cmd_info->tokens[idx];
 		idx++;
 
 		if (strncmp(word, stat_var, var_len) == 0) {
@@ -134,45 +135,44 @@ echo_line(char **tokens, size_t tokens_len, int *status)
 }
 
 int 
-execute_cmd(char **tokens, size_t token_len, int *curr_status)
+execute_cmd(struct CommandInfo *cmd_info, int *curr_status)
 {
 	pid_t pid;
 	int child_status = 0;
 
-	if (token_len == 0) {
+	if (cmd_info->token_count == 0) {
 		return REPEAT;
 	}
 
-	if (strncmp(tokens[0], CD_CMD, strlen(CD_CMD)) == 0) {
-		*curr_status = change_dir(tokens, token_len);
+	if (strncmp(cmd_info->tokens[0], CD_CMD, strlen(CD_CMD)) == 0) {
+		*curr_status = change_dir(cmd_info);
 
-	} else if (strncmp(tokens[0], ECHO_CMD, strlen(ECHO_CMD)) == 0) {
-		*curr_status = echo_line(tokens, token_len, curr_status);
+	} else if (strncmp(cmd_info->tokens[0], ECHO_CMD, 
+			strlen(ECHO_CMD)) == 0) {
+		*curr_status = echo_line(cmd_info, curr_status);
 
-	} else if (strncmp(tokens[0], EXIT_CMD, strlen(EXIT_CMD)) == 0) {
+	} else if (strncmp(cmd_info->tokens[0], EXIT_CMD, 
+			strlen(EXIT_CMD)) == 0) {
 		/* terminate repeats in caller */
 		return NO_REPEAT;
 
 	} else {
 		/* general fork/exec handling */
 		if ((pid = fork()) == -1) {
-			perror(tokens[0]);
+			perror(cmd_info->tokens[0]);
 			*curr_status = 127;
 		} else if (pid == 0) {
 			/* in child */
-			execvp(tokens[0], tokens);
+			execvp(cmd_info->tokens[0], cmd_info->tokens);
 			/* should not return */
 			fprintf(stderr, "%s: command not found\n", 
-				tokens[0]);
-			if (tokens != NULL) {
-				(void)free(tokens);
-			}
+				cmd_info->tokens[0]);
 
 			exit(PROC_FAILURE);
 		} else {
 			/* in parent */
 			if (waitpid(pid, &child_status, WEXITED) == -1) {
-				perror(tokens[0]);
+				perror(cmd_info->tokens[0]);
 				*curr_status = PROC_FAILURE;
 				return REPEAT;
 			}

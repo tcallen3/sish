@@ -39,7 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "parser.h"
 
 #define ECHO_PREFIX '+'
-#define MAX_ARGS 256
 
 static void
 print_prompt()
@@ -47,59 +46,45 @@ print_prompt()
 	printf("sish$ ");
 }
 
-static size_t
-tokenize(char *input, char ***tokens)
+static void
+tokenize(char *input, struct CommandInfo *cmd_info)
 {
 	const char sep[] = " \t\n";
-	char **out_arr = *tokens;
 	char *curr_tok = NULL;
 	size_t i = 0;
 
-	out_arr = realloc(out_arr, MAX_ARGS*sizeof(*out_arr));
-	if (out_arr == NULL) {
-		perror("tokenize");
-		return i;
-	}
-
-	out_arr[i] = strtok(input, sep);
-	if (out_arr[i] == NULL) {
-		return i;
+	cmd_info->tokens[i] = strtok(input, sep);
+	if (cmd_info->tokens[i] == NULL) {
+		cmd_info->token_count = 0;
+		return;
 	}
 	i++;
 
 	while ((curr_tok = strtok(NULL, sep)) != NULL &&
 			i < MAX_ARGS - 1) {
-		out_arr[i] = curr_tok;
+		cmd_info->tokens[i] = curr_tok;
 		i++;
 	}
-	out_arr[i] = NULL;
-
-	*tokens = out_arr;
-	
-	return i;
+	cmd_info->tokens[i] = NULL;
+	cmd_info->token_count = i;
 }
 
 int 
 parse_single(int echo, char *input)
 {
-	char **tokens = NULL;
-	size_t tokens_len = 0;
+	struct CommandInfo cmd_info;
 	int status = EXIT_SUCCESS;
 
 	if (echo) {
 		printf("%c%s\n", ECHO_PREFIX, input);
 	}
 
-	tokens_len = tokenize(input, &tokens);
-	if (tokens_len == 0) {
+	tokenize(input, &cmd_info);
+	if (cmd_info.token_count == 0) {
 		return status;
 	}
 
-	(void)execute_cmd(tokens, tokens_len, &status);
-
-	if (tokens != NULL) {
-		(void)free(tokens);
-	}
+	(void)execute_cmd(&cmd_info, &status);
 
 	return status;
 }
@@ -107,10 +92,9 @@ parse_single(int echo, char *input)
 int
 parse_commands(int echo)
 {
+	struct CommandInfo cmd_info;
 	char *input = NULL;
-	char **tokens = NULL;
 	size_t input_len = 0;
-	size_t tokens_len = 0;
 	int repeat = 1;
 	int status = EXIT_SUCCESS;
 
@@ -121,20 +105,16 @@ parse_commands(int echo)
 			printf("%c%s\n", ECHO_PREFIX, input);
 		}
 
-		tokens_len = tokenize(input, &tokens);
-		if (tokens_len == 0) {
+		tokenize(input, &cmd_info);
+		if (cmd_info.token_count == 0) {
 			continue;
 		}
 
-		repeat = execute_cmd(tokens, tokens_len, &status);
+		repeat = execute_cmd(&cmd_info, &status);
 	}
 
 	if (input != NULL) {
 		(void)free(input);
-	}
-
-	if (tokens != NULL) {
-		(void)free(tokens);
 	}
 
 	return status;
