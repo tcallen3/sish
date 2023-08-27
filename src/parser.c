@@ -155,10 +155,10 @@ parse_commands(int echo)
 	int repeat = 1;
 	int status = EXIT_SUCCESS;
 
-	cmd_info.fd_in = STDIN_FILENO;
-	cmd_info.fd_out = STDOUT_FILENO;
-
 	while (repeat) {
+		cmd_info.fd_in = STDIN_FILENO;
+		cmd_info.fd_out = STDOUT_FILENO;
+
 		print_prompt();
 		getline(&input, &input_len, stdin);
 		if (echo) {
@@ -172,18 +172,18 @@ parse_commands(int echo)
 		}
 
 		repeat = execute_cmd(&cmd_info, &status);
+
+		if (cmd_info.fd_in != STDIN_FILENO) {
+			(void)close(cmd_info.fd_in);
+		}
+
+		if (cmd_info.fd_out != STDOUT_FILENO) {
+			(void)close(cmd_info.fd_out);
+		}
 	}
 
 	if (input != NULL) {
 		(void)free(input);
-	}
-
-	if (cmd_info.fd_in != STDIN_FILENO) {
-		(void)close(cmd_info.fd_in);
-	}
-
-	if (cmd_info.fd_out != STDOUT_FILENO) {
-		(void)close(cmd_info.fd_out);
 	}
 
 	return status;
