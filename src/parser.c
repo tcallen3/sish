@@ -102,7 +102,7 @@ parse_commands(int echo)
 		print_prompt();
 		getline(&input, &input_len, stdin);
 		if (echo) {
-			printf("%c%s\n", ECHO_PREFIX, input);
+			printf("%c%s", ECHO_PREFIX, input);
 		}
 
 		tokenize(input, &cmd_info);
