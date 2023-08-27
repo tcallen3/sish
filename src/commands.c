@@ -163,6 +163,10 @@ execute_cmd(struct CommandInfo *cmd_info, int *curr_status)
 			*curr_status = 127;
 		} else if (pid == 0) {
 			/* in child */
+			if (cmd_info->fd_in != STDIN_FILENO) {
+				dup2(cmd_info->fd_in, STDIN_FILENO);
+				(void)close(cmd_info->fd_in);
+			}
 			execvp(cmd_info->tokens[0], cmd_info->tokens);
 			/* should not return */
 			fprintf(stderr, "%s: command not found\n", 

@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 struct CommandInfo {
 	char *tokens[MAX_ARGS];
 	size_t token_count;
+	int fd_in;
+	int fd_out;
 };
 
 int parse_single(int, char *);

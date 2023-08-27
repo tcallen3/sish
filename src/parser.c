@@ -31,9 +31,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#include <sys/param.h>
+
+#include <ctype.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "commands.h"
 #include "parser.h"
@@ -44,6 +49,46 @@ static void
 print_prompt()
 {
 	printf("sish$ ");
+}
+
+static void
+check_redirect(char *input, struct CommandInfo *cmd_info)
+{
+	size_t i, j, rstart, f_i;
+	size_t flen;
+	size_t len = strlen(input);
+	const char re_in = '<';
+	char fname[MAXPATHLEN];
+
+	fname[0] = '\0';
+	for (i = 0; i < len; i++) {
+		if (input[i] == re_in) {
+			rstart = i;
+			i++;
+			while (isspace(input[i]) && i < len) {
+				i++;
+			}
+
+			flen = 1;
+			f_i = i;
+			while (!isspace(input[f_i]) && f_i < len) {
+				f_i++;
+				flen++;
+			}
+			snprintf(fname, flen, "%s", &input[i]);
+			for (j = rstart; j < f_i; j++) {
+				input[j] = ' ';
+			}
+		}
+	}
+
+	if (strlen(fname) > 0) {
+		cmd_info->fd_in = open(fname, O_RDONLY);
+		if (cmd_info->fd_in == -1) {
+			perror(fname);
+			cmd_info->fd_in = STDIN_FILENO;
+		}
+	}
 }
 
 static void
@@ -75,16 +120,28 @@ parse_single(int echo, char *input)
 	struct CommandInfo cmd_info;
 	int status = EXIT_SUCCESS;
 
+	cmd_info.fd_in = STDIN_FILENO;
+	cmd_info.fd_out = STDOUT_FILENO;
+
 	if (echo) {
 		printf("%c%s\n", ECHO_PREFIX, input);
 	}
 
+	check_redirect(input, &cmd_info);
 	tokenize(input, &cmd_info);
 	if (cmd_info.token_count == 0) {
 		return status;
 	}
 
 	(void)execute_cmd(&cmd_info, &status);
+
+	if (cmd_info.fd_in != STDIN_FILENO) {
+		(void)close(cmd_info.fd_in);
+	}
+
+	if (cmd_info.fd_out != STDOUT_FILENO) {
+		(void)close(cmd_info.fd_out);
+	}
 
 	return status;
 }
@@ -98,6 +155,9 @@ parse_commands(int echo)
 	int repeat = 1;
 	int status = EXIT_SUCCESS;
 
+	cmd_info.fd_in = STDIN_FILENO;
+	cmd_info.fd_out = STDOUT_FILENO;
+
 	while (repeat) {
 		print_prompt();
 		getline(&input, &input_len, stdin);
@@ -105,6 +165,7 @@ parse_commands(int echo)
 			printf("%c%s", ECHO_PREFIX, input);
 		}
 
+		check_redirect(input, &cmd_info);
 		tokenize(input, &cmd_info);
 		if (cmd_info.token_count == 0) {
 			continue;
@@ -115,6 +176,14 @@ parse_commands(int echo)
 
 	if (input != NULL) {
 		(void)free(input);
+	}
+
+	if (cmd_info.fd_in != STDIN_FILENO) {
+		(void)close(cmd_info.fd_in);
+	}
+
+	if (cmd_info.fd_out != STDOUT_FILENO) {
+		(void)close(cmd_info.fd_out);
 	}
 
 	return status;
